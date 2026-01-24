@@ -27,15 +27,28 @@ func handleInput() {
 
 	splitLine := strings.Split(line, " ")
 	command := splitLine[0]
-	args := strings.Join(splitLine[1:], " ")
+	args := splitLine[1:]
 
-	switch command {
-	case "exit":
-		os.Exit(0)
-	case "echo":
-		fmt.Println(args)
-
-	default:
+	if function, ok := builtins[command]; ok {
+		function(args)
+	} else {
 		fmt.Printf("%s: command not found\n", command)
 	}
+}
+
+type CommandHandler func(args []string) error
+
+var builtins = map[string]CommandHandler{
+	"exit": handleExit,
+	"echo": handleEcho,
+}
+
+func handleEcho(args []string) error {
+	fmt.Println(strings.Join(args, " "))
+	return nil
+}
+
+func handleExit(args []string) error {
+	os.Exit(0)
+	return nil
 }
