@@ -23,9 +23,9 @@ func handleInput() {
 	if err != nil {
 		os.Exit(1)
 	}
-	line = strings.TrimSpace(line)
+	// line = strings.TrimSpace(line)
 
-	splitLine := strings.Split(line, " ")
+	splitLine := strings.Fields(line)
 	command := splitLine[0]
 	args := splitLine[1:]
 
