@@ -9,13 +9,6 @@ import (
 )
 
 func main() {
-	// pathDirs := getPathDirs()
-	// for _, pathDir := range pathDirs {
-	// 	fmt.Println(pathDir)
-	// }
-
-	// fmt.Print(getExecutablesFromDir(pathDirs[2]))
-
 	for {
 		printPrompt()
 		handleInput()
@@ -50,21 +43,12 @@ type CommandHandler func(args []string) error
 
 var builtins map[string]CommandHandler
 
-var pathExecutables map[string]string
-
 func init() {
 	builtins = map[string]CommandHandler{
 		"exit": handleExit,
 		"echo": handleEcho,
 		"type": handleType,
 	}
-
-	// pathExecutables = make(map[string]string)
-	//
-	// pathDirs := getPathDirs()
-	// for _, pathDir := range pathDirs {
-	// 	maps.Copy(pathExecutables, getExecutablesFromDir(pathDir))
-	// }
 }
 
 func handleEcho(args []string) error {
@@ -94,11 +78,6 @@ func handleType(args []string) error {
 		fmt.Printf("%s: not found\n", command)
 	}
 
-	// if _, ok := pathExecutables[command]; ok {
-	// 	fmt.Printf("%s is %s\n", command, pathExecutables[command])
-	// } else {
-	// 	fmt.Printf("%s: not found\n", command)
-	// }
 	return nil
 }
 
@@ -114,32 +93,4 @@ func getExecutableFromDir(executableName, dirPath string) (exists bool, absPath 
 		absPath = checkPath
 	}
 	return exists, absPath
-}
-
-func getExecutablesFromDir(dirPath string) map[string]string {
-	execs := make(map[string]string)
-
-	contents, err := os.ReadDir(dirPath)
-	if err != nil {
-		return nil
-	}
-
-	for _, file := range contents {
-		if file.IsDir() {
-			continue
-		}
-		fileInfo, err := file.Info()
-		if err != nil {
-			continue
-		}
-		permissions := fileInfo.Mode().Perm()
-		fmt.Println(permissions)
-
-		if permissions&os.FileMode(0o111) != 0 {
-			execs[file.Name()] = dirPath + string(os.PathSeparator) + file.Name()
-		}
-
-	}
-
-	return execs
 }
