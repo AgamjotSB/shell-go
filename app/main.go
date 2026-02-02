@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -26,6 +27,9 @@ func handleInput() {
 	}
 
 	splitLine := strings.Fields(line)
+	if len(splitLine) == 0 {
+		return
+	}
 	command := splitLine[0]
 	args := splitLine[1:]
 
@@ -34,8 +38,15 @@ func handleInput() {
 		if err != nil {
 			return
 		}
+	} else if strings.ContainsRune(command, '/') {
+		fmt.Println("Error: direct paths not implemented")
 	} else {
-		fmt.Printf("%s: command not found\n", command)
+		exists, path := getExecutableFromPath(command)
+		if exists {
+			handleExecutables(command, path, args)
+		} else {
+			fmt.Printf("%s: command not found\n", command)
+		}
 	}
 }
 
@@ -93,4 +104,29 @@ func getExecutableFromDir(executableName, dirPath string) (exists bool, absPath 
 		absPath = checkPath
 	}
 	return exists, absPath
+}
+
+func getExecutableFromPath(executableName string) (exists bool, absPath string) {
+	pathDirs := getPathDirs()
+	for _, pathDir := range pathDirs {
+		exists, absPath := getExecutableFromDir(executableName, pathDir)
+		if exists {
+			return true, absPath
+		}
+	}
+	return
+}
+
+func handleExecutables(commandName string, executablePath string, args []string) {
+	executable := exec.Command(executablePath, args...)
+	executable.Args[0] = commandName
+	executable.Stdin = os.Stdin
+	executable.Stdout = os.Stdout
+	executable.Stderr = os.Stderr
+
+	err := executable.Run()
+	if err != nil {
+		fmt.Println("Error running")
+		return
+	}
 }
