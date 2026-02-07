@@ -59,6 +59,7 @@ func init() {
 		"exit": handleExit,
 		"echo": handleEcho,
 		"type": handleType,
+		"pwd":  handlePwd,
 	}
 }
 
@@ -89,6 +90,17 @@ func handleType(args []string) error {
 		fmt.Printf("%s: not found\n", command)
 	}
 
+	return nil
+}
+
+func handlePwd(args []string) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting pwd")
+		return nil
+	}
+
+	fmt.Printf("%s\n", dir)
 	return nil
 }
 
