@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 )
 
 func main() {
@@ -107,28 +108,23 @@ func handlePwd(args []string) error {
 }
 
 func handleCd(args []string) error {
-	if len(args) > 0 {
-		dir := args[0]
-		fileInfo, err := os.Stat(dir)
+	if len(args) == 0 {
+		return nil // home directory
+	}
+
+	dir := args[0]
+	if err := os.Chdir(dir); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			fmt.Printf("cd: %s: No such file or directory\n", dir)
-			return nil
-		} else if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			return nil
-		}
-
-		if !fileInfo.IsDir() {
+		} else if errors.Is(err, syscall.ENOTDIR) {
 			fmt.Printf("cd: %s: Not a directory\n", dir)
-			return nil
+		} else if errors.Is(err, os.ErrPermission) {
+			fmt.Printf("cd: %s: Permission Denied\n", dir)
+		} else {
+			fmt.Printf("cd: %s: %v\n", dir, err)
 		}
-
-		if err := os.Chdir(dir); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			return nil
-		}
-
 	}
+
 	return nil
 }
 
