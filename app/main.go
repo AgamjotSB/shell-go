@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -60,6 +61,7 @@ func init() {
 		"echo": handleEcho,
 		"type": handleType,
 		"pwd":  handlePwd,
+		"cd":   handleCd,
 	}
 }
 
@@ -101,6 +103,32 @@ func handlePwd(args []string) error {
 	}
 
 	fmt.Printf("%s\n", dir)
+	return nil
+}
+
+func handleCd(args []string) error {
+	if len(args) > 0 {
+		dir := args[0]
+		fileInfo, err := os.Stat(dir)
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Printf("cd: %s: No such file or directory\n", dir)
+			return nil
+		} else if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return nil
+		}
+
+		if !fileInfo.IsDir() {
+			fmt.Printf("cd: %s: Not a directory\n", dir)
+			return nil
+		}
+
+		if err := os.Chdir(dir); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return nil
+		}
+
+	}
 	return nil
 }
 
