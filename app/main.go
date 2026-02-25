@@ -38,6 +38,7 @@ func handleInput() {
 	if function, ok := builtins[command]; ok {
 		err := function(args)
 		if err != nil {
+			fmt.Println(err)
 			return
 		}
 	} else if strings.ContainsRune(command, '/') {
@@ -81,26 +82,22 @@ func handleType(args []string) error {
 	if _, ok := builtins[command]; ok {
 		fmt.Printf("%s is a shell builtin\n", args[0])
 		return nil
-	} else {
-		pathDirs := getPathDirs()
-		for _, pathDir := range pathDirs {
-			exists, absPath := getExecutableFromDir(command, pathDir)
-			if exists {
-				fmt.Printf("%s is %s\n", command, absPath)
-				return nil
-			}
-		}
-		fmt.Printf("%s: not found\n", command)
 	}
-
-	return nil
+	pathDirs := getPathDirs()
+	for _, pathDir := range pathDirs {
+		exists, absPath := getExecutableFromDir(command, pathDir)
+		if exists {
+			fmt.Printf("%s is %s\n", command, absPath)
+			return nil
+		}
+	}
+	return fmt.Errorf("%s: not found", command)
 }
 
 func handlePwd(args []string) error {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Println("Error getting pwd")
-		return nil
+		return fmt.Errorf("pwd: error getting pwd %w", err)
 	}
 
 	fmt.Printf("%s\n", dir)
@@ -109,19 +106,20 @@ func handlePwd(args []string) error {
 
 func handleCd(args []string) error {
 	if len(args) == 0 {
-		return nil // home directory
+		return nil // home directory not implemented yet
 	}
 
 	dir := args[0]
 	if err := os.Chdir(dir); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			fmt.Printf("cd: %s: No such file or directory\n", dir)
-		} else if errors.Is(err, syscall.ENOTDIR) {
-			fmt.Printf("cd: %s: Not a directory\n", dir)
-		} else if errors.Is(err, os.ErrPermission) {
-			fmt.Printf("cd: %s: Permission Denied\n", dir)
-		} else {
-			fmt.Printf("cd: %s: %v\n", dir, err)
+		switch {
+		case errors.Is(err, os.ErrNotExist):
+			return fmt.Errorf("cd: %s: No such file or directory", dir)
+		case errors.Is(err, os.ErrPermission):
+			return fmt.Errorf("cd: %s: Permission Denied", dir)
+		case errors.Is(err, syscall.ENOTDIR):
+			return fmt.Errorf("cd: %s: Not a directory", dir)
+		default:
+			return fmt.Errorf("cd: %s: %v", dir, err)
 		}
 	}
 
@@ -162,7 +160,7 @@ func handleExecutables(commandName string, executablePath string, args []string)
 
 	err := executable.Run()
 	if err != nil {
-		fmt.Println("Error running")
+		// fmt.Println("Error running")
 		return
 	}
 }
