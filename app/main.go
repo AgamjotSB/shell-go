@@ -83,13 +83,9 @@ func handleType(args []string) error {
 		fmt.Printf("%s is a shell builtin\n", args[0])
 		return nil
 	}
-	pathDirs := getPathDirs()
-	for _, pathDir := range pathDirs {
-		exists, absPath := getExecutableFromDir(command, pathDir)
-		if exists {
-			fmt.Printf("%s is %s\n", command, absPath)
-			return nil
-		}
+	if exists, absPath := getExecutableFromPath(command); exists {
+		fmt.Printf("%s is %s\n", command, absPath)
+		return nil
 	}
 	return fmt.Errorf("%s: not found", command)
 }
