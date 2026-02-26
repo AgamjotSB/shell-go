@@ -105,11 +105,25 @@ func handlePwd(args []string) error {
 }
 
 func handleCd(args []string) error {
-	if len(args) == 0 {
-		return nil // home directory not implemented yet
+	if len(args) > 1 {
+		return fmt.Errorf("cd: Too many arguments")
 	}
 
-	dir := args[0]
+	var dir string
+	if len(args) == 0 {
+		dir = "~"
+	} else {
+		dir = args[0]
+	}
+
+	if dir == "~" || strings.HasPrefix(dir, "~/") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("cd: Cannot find home directory")
+		}
+		dir = filepath.Join(home, dir[1:])
+	}
+
 	if err := os.Chdir(dir); err != nil {
 		switch {
 		case errors.Is(err, os.ErrNotExist):
