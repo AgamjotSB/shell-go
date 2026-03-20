@@ -78,16 +78,22 @@ func handleExit(args []string) error {
 }
 
 func handleType(args []string) error {
-	command := args[0]
-	if _, ok := builtins[command]; ok {
-		fmt.Printf("%s is a shell builtin\n", args[0])
+	var errorsArray []error
+	for _, command := range args {
+		if _, ok := builtins[command]; ok {
+			fmt.Printf("%s is a shell builtin\n", command)
+			continue
+		}
+		if exists, absPath := getExecutableFromPath(command); exists {
+			fmt.Printf("%s is %s\n", command, absPath)
+			continue
+		}
+		errorsArray = append(errorsArray, fmt.Errorf("%s: not found", command))
+	}
+	if len(errorsArray) == 0 {
 		return nil
 	}
-	if exists, absPath := getExecutableFromPath(command); exists {
-		fmt.Printf("%s is %s\n", command, absPath)
-		return nil
-	}
-	return fmt.Errorf("%s: not found", command)
+	return errors.Join(errorsArray...)
 }
 
 func handlePwd(args []string) error {
