@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/AgamjotSB/shell-go/tokenizer"
 )
 
 func main() {
@@ -28,7 +30,12 @@ func handleInput() {
 		os.Exit(1)
 	}
 
-	splitLine := strings.Fields(line)
+	splitLine, err := tokenizer.Parse(line)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	if len(splitLine) == 0 {
 		return
 	}
