@@ -39,6 +39,10 @@ func handleInput() {
 	if len(splitLine) == 0 {
 		return
 	}
+
+	// str := "['" + strings.Join(splitLine, "', '") + "']"
+	// fmt.Println(str + "\n")
+
 	command := splitLine[0]
 	args := splitLine[1:]
 
