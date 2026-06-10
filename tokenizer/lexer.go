@@ -48,10 +48,7 @@ func (l *Lexer) NextToken() (token string, isEOF bool, err error) {
 			}
 			sb.WriteString(token)
 		case '\\':
-			token, err := l.handleEscapeBackSlash()
-			if err != nil {
-				return "", false, err
-			}
+			token := l.handleEscapeBackSlash()
 			sb.WriteRune(token)
 
 		default:
@@ -85,20 +82,25 @@ func (l *Lexer) handleSingleQuote() (string, error) {
 	}
 }
 
-func (l *Lexer) handleEscapeBackSlash() (rune, error) {
+func (l *Lexer) handleEscapeBackSlash() rune {
 	char := l.advance()
-	return char, nil
+	return char
 }
 
 func (l *Lexer) handleDoubleQuote() (string, error) {
 	var sb strings.Builder
 	for {
 		char := l.advance()
-		if char == eof {
+		switch char {
+		case eof:
 			return "", fmt.Errorf("error: unclosed single quote")
-		}
-		if char == '"' {
+		case '"':
 			return sb.String(), nil
+		case '\\':
+			next := l.peek()
+			if next == '"' || next == '\\' || next == '$' || next == '`' {
+				char = l.handleEscapeBackSlash()
+			}
 		}
 		sb.WriteRune(char)
 	}
